@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link rel='stylesheet' href='style.css'>
+    <style>
+        /* Include some basic styling for better visibility */
+        .loading {
+            display: none;
+        }
+        .error {
+            display: none;
+            color: red;
+        }
+        .weather {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+        <div class="search">
+            <input type="text" placeholder="Enter city name" spellcheck="false">
+            <button><img src="weather-app-img/images/search.png" alt="Search"></button>
+        </div>
+        <div class="loading">
+            <p>Loading...</p>
+        </div>
+        <div class="error">
+            <p>Invalid city name or network error. Please try again.</p>
+        </div>
+        <div class="weather">
+            <img src="weather-app-img/images/rain.png" class="weather-icon" alt="Weather Icon">
+            <h1 class="temp">22°C</h1>
+            <h2 class="city">New York</h2>
+
+            <div class="details">
+                <div class="col">
+                    <img src="weather-app-img/images/humidity.png" alt="Humidity">
+                    <div>
+                        <p class="humidity">50%</p>
+                        <p>Humidity</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <img src="weather-app-img/images/wind.png" alt="Wind Speed">
+                    <div>
+                        <p class="wind">15 km/hr</p>
+                        <p>Wind Speed</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const api_key = "a04526a2f335245d39e3d55eb27c8a88";
+        const api_url = "https://api.openweathermap.org/data/2.5/weather?units=metric&q=";
+
+        const search_box = document.querySelector(".search input");
+        const search_button = document.querySelector(".search button");
+        const weather_icon = document.querySelector(".weather-icon");
+        const weather_div = document.querySelector(".weather");
+        const error_div = document.querySelector(".error");
+        const loading_div = document.querySelector(".loading");
+
+        function showLoading() {
+            loading_div.style.display = "block";
+            weather_div.style.display = "none";
+            error_div.style.display = "none";
+        }
+
+        function showError() {
+            error_div.style.display = "block";
+            weather_div.style.display = "none";
+            loading_div.style.display = "none";
+        }
+
+        function showWeather(data) {
+            document.querySelector(".city").innerHTML = data.name;
+            document.querySelector(".temp").innerHTML = Math.round(data.main.temp) + "°C";
+            document.querySelector(".humidity").innerHTML = data.main.humidity + "%";
+            document.querySelector(".wind").innerHTML = data.wind.speed + " km/hr";
+
+            switch (data.weather[0].main) {
+                case "Clouds":
+                    weather_icon.src = "weather-app-img/images/clouds.png";
+                    break;
+                case "Clear":
+                    weather_icon.src = "weather-app-img/images/clear.png";
+                    break;
+                case "Rain":
+                    weather_icon.src = "weather-app-img/images/rain.png";
+                    break;
+                case "Drizzle":
+                    weather_icon.src = "weather-app-img/images/drizzle.png";
+                    break;
+                case "Mist":
+                    weather_icon.src = "weather-app-img/images/mist.png";
+                    break;
+                default:
+                    weather_icon.src = "weather-app-img/images/default.png";
+            }
+
+            weather_div.style.display = "block";
+            loading_div.style.display = "none";
+            error_div.style.display = "none";
+        }
+
+        async function check_weather(city) {
+            showLoading();
+            try {
+                const response = await fetch(api_url + city + `&appid=${api_key}`);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+
+                if (data && data.main && data.wind) {
+                    showWeather(data);
+                } else {
+                    showError();
+                }
+            } catch (error) {
+                console.error("Error fetching weather data:", error);
+                showError();
+            }
+        }
+
+        search_button.addEventListener("click", () => {
+            const city = search_box.value.trim();
+            if (city) {
+                check_weather(city);
+            } else {
+                showError();
+            }
+        });
+    </script>
+
+</body>
+
+</html>
